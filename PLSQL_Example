@@ -1,0 +1,135 @@
+CREATE OR REPLACE PROCEDURE createAgeDecode 
+IS
+BEGIN 
+    EXECUTE IMMEDIATE 'DROP TABLE ageDecode CASCADE CONSTRAINTS';
+	EXECUTE IMMEDIATE 'CREATE TABLE ageDecode
+		(
+			Age			INTEGER,
+			DecodeAge	VARCHAR2(10),
+			
+			CONSTRAINT PK_AgeDecode
+				PRIMARY KEY (Age)
+		
+		)';
+	EXECUTE IMMEDIATE 'INSERT INTO ageDecode VALUES(1, ''UNDER 18'')';
+	EXECUTE IMMEDIATE 'INSERT INTO ageDecode VALUES(18, ''18-24'')';
+	EXECUTE IMMEDIATE 'INSERT INTO ageDecode VALUES(25, ''25-34'')';
+	EXECUTE IMMEDIATE 'INSERT INTO ageDecode VALUES(35, ''35-44'')';
+	EXECUTE IMMEDIATE 'INSERT INTO ageDecode VALUES(45, ''45-49'')';
+	EXECUTE IMMEDIATE 'INSERT INTO ageDecode VALUES(50, ''50-55'')';
+	EXECUTE IMMEDIATE 'INSERT INTO ageDecode VALUES(56, ''56+'')';
+    COMMIT;	
+END createAgeDecode;
+/
+
+EXECUTE createAgeDecode;
+
+
+
+
+CREATE OR REPLACE PROCEDURE create_users_table 
+IS
+BEGIN
+DECLARE
+	userDrop VARCHAR2(100) := 'DROP TABLE Users CASCADE CONSTRAINTS';
+	userTable VARCHAR2(300);
+BEGIN 
+	EXECUTE IMMEDIATE userDrop;
+	userTable := 'CREATE TABLE Users 
+		(
+			UserID,
+			Gender,
+			AgeCode,
+			Occupation,
+			Zipcode,
+			
+			CONSTRAINT PK_Users
+				PRIMARY KEY (UserID)
+			
+		) AS SELECT * FROM tempUsers';
+	EXECUTE IMMEDIATE userTable;
+	DBMS_OUTPUT.PUT_LINE('NUMBER OF ROWS INSERTED INTO USERS TABLE IS '|| TO_CHAR(SQL%ROWCOUNT));
+    COMMIT;	
+END;
+END create_users_table;
+/
+EXECUTE create_users_table;
+
+
+CREATE OR REPLACE PROCEDURE create_ratings_table 
+IS
+BEGIN 
+DECLARE
+	ratingDrop	VARCHAR2(100) := 'DROP TABLE Ratings CASCADE CONSTRAINTS';
+	ratingTable VARCHAR2(300);
+BEGIN
+    EXECUTE IMMEDIATE ratingDrop;
+    ratingTable := 'CREATE TABLE Ratings 
+		(
+			UserID,
+			MovieID,
+			Rating,
+			Time_stamp,
+			
+			CONSTRAINT PK_Ratings
+				PRIMARY KEY (UserID, MovieID)
+			
+		) AS SELECT * FROM tempRatings';
+	EXECUTE IMMEDIATE ratingTable;
+	DBMS_OUTPUT.PUT_LINE('NUMBER OF ROWS INSERTED INTO RATINGS TABLE IS '|| TO_CHAR(SQL%ROWCOUNT));
+    COMMIT;	
+END;
+END create_ratings_table;
+/
+
+EXECUTE create_ratings_table;
+
+
+
+CREATE OR REPLACE PROCEDURE create_movies_table 
+IS
+BEGIN 
+DECLARE
+	moviesTable VARCHAR2(500);
+    stringToSeperate VARCHAR2(500) := 'INSERT INTO Movies SELECT MovieID, SUBSTR(Title, 0, LENGTH(Title)-6), SUBSTR(Title, LENGTH(Title)-4, 4) FROM tempMovies';
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE Movies CASCADE CONSTRAINTS';
+    moviesTable := 'CREATE TABLE Movies 
+		(
+			MovieID   			NUMBER(4,0),
+			MovieTitle			VARCHAR2(90),
+			Year     			VARCHAR2(6),
+
+			CONSTRAINT PK_Movies
+				PRIMARY KEY (MovieID)
+
+		)';
+	EXECUTE IMMEDIATE moviesTable;
+    EXECUTE IMMEDIATE stringToSeperate;
+	DBMS_OUTPUT.PUT_LINE('NUMBER OF ROWS INSERTED INTO MOVIE TABLE IS '|| TO_CHAR(SQL%ROWCOUNT));
+    COMMIT;	
+END;
+END create_movies_table;
+/
+EXECUTE create_movies_table;
+
+
+
+
+
+SELECT TRUNC(AVG(Rating)) AS AverageRating, MovieTitle, Gender
+	FROM Ratings R INNER JOIN Users U ON R.UserID = U.UserID INNER JOIN Movies M ON M.MovieID = R.MovieID
+	WHERE Gender = 'F' AND M.MovieID = 500 
+    GROUP BY MovieTitle, Gender;
+
+
+
+
+
+
+
+
+
+
+
+
